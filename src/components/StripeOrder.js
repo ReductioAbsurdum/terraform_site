@@ -1,10 +1,16 @@
 import React from 'react';
+import axios from 'axios';
+import {stripe_pk_test} from '../../config';
+
+const sendToServer = info =>{
+  return axios.post("/charge", info).then(resp=>resp.data);
+}
 
 class StripeOrder extends React.Component{
   constructor(props){
     super(props);
     this.empty = [];
-    this.stripe = Stripe('');
+    this.stripe = Stripe(stripe_pk_test);
     this.card = this.stripe.elements().create('card', {
       hidePostalCode: true,
       style: {
@@ -25,7 +31,30 @@ class StripeOrder extends React.Component{
   componentDidMount(){
     this.card.mount(document.getElementById('card_element'));
   };
+  hasOptions(){
+    if(this.props.options.length > 0){
+      return (
+        <select className="field" ref="options">
+          <option value="">Select Options for Item</option>
+          {
+            this.props.options.map((option, index)=>
+              <option key={index} value={option}>{option}</option>
+            )
+          }
+        </select>
+      )
+    }else{
+      return (
+        <select className="field" ref="options">
+          <option value="">No Additional Options for this item</option>;
+        </select>
+      )
+    }
+  }
   verify(){
+    if(this.props.options.length > 0 && !this.refs.options.value){
+      this.empty.push("Options");
+    }
     if(!this.refs.email.value){
       this.empty.push("Email");
     }
@@ -47,7 +76,7 @@ class StripeOrder extends React.Component{
   };
   submit(e){
     e.preventDefault();
-    var DOMerror = document.getElementById('error');
+    var DOMerror = this.refs.error;
     DOMerror.textContent = "";
     this.verify();
     if(this.empty.length > 0){
@@ -70,12 +99,20 @@ class StripeOrder extends React.Component{
       if(result.error){
         DOMerror.textContent = result.error.message;
       }else{
+        result.price = _this.props.price;
         console.log(result);
         console.log("Time to send to server to complete charge!");
         //send result in ajax post request to /charge (on the server we create the charge that sends to stripe)
-        _this.props.changeSection();
+        sendToServer(result).then(resp=>{
+          if(resp.message){
+            DOMerror.textContent = resp.message;
+          }else{
+            _this.props.changeSection();
+          }
+        });
       }
     });
+
   };
   render(){
     return (
@@ -84,9 +121,7 @@ class StripeOrder extends React.Component{
         <div className="group">
           <label htmlFor="state">
             <span>Options</span>
-            <select className="field" ref="options">
-              <option className="fadded" value="">No Additional Options for this item</option>
-            </select>
+            {this.hasOptions()}
           </label>
         </div>
 
@@ -185,7 +220,7 @@ class StripeOrder extends React.Component{
           </label>
 
         </div>
-        <div id="error"></div>
+        <div className="error" ref="error"></div>
       <hr/>
       <button type="submit" onClick={this.submit.bind(this)}>Submit Purchase</button>
       </form>
@@ -193,4 +228,11 @@ class StripeOrder extends React.Component{
     )
   };
 };
+
+StripeOrder.propTypes = {
+  options: React.PropTypes.array,
+  changeSection: React.PropTypes.func.isRequired,
+  price: React.PropTypes.number.isRequired
+}
+
 export default StripeOrder;

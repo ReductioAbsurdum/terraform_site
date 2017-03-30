@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Slider from './components/Slider';
-import Stripe from './components/Stripe';
+import Contact from './components/Contact';
+import Terraform_Item from './components/Terraform_Item';
 
-var images = ['spore_imgs/spore1.png', 'spore_imgs/spore2.png', 'spore_imgs/spore3.png', 'spore_imgs/spore4.png', 'spore_imgs/spore5.png']
+ReactDOM.render(<Contact />, document.getElementById('contact_component'));
 
-ReactDOM.render(<Slider images={images}/>, document.getElementById('showcase'));
-ReactDOM.render(<Stripe />, document.getElementById('stripe'));
+var img_items = document.getElementsByClassName('box_image');
+var items = Array.prototype.slice.call(img_items);
+ReactDOM.render(<Terraform_Item items={items}/>, document.getElementById('after'));

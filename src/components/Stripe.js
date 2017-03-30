@@ -5,7 +5,12 @@ import StripeOrder from './StripeOrder';
 class Stripe extends React.Component{
   constructor(props){
     super(props);
-    this.state = {orderSection: 0};
+    this.state = {orderSection: 0}
+  }
+  componentWillReceiveProps(){
+    this.setState({
+      orderSection: 0
+    })
   }
   changeSection(num){
     this.setState({
@@ -17,9 +22,9 @@ class Stripe extends React.Component{
   }
   orderSection(){
     if(this.state.orderSection === 0){
-      return <Info changeSection={this.changeSection.bind(this, 1)}/>
+      return <Info description={this.props.description} price={this.props.price} changeSection={this.changeSection.bind(this, 1)}/>
     }else if(this.state.orderSection === 1){
-      return <StripeOrder changeSection={this.changeSection.bind(this, 2)}/>
+      return <StripeOrder price={this.props.price} options={this.props.options} changeSection={this.changeSection.bind(this, 2)}/>
     }else if(this.state.orderSection === 2){
       return (
         <div className="finish">
@@ -32,7 +37,7 @@ class Stripe extends React.Component{
   }
   render(){
     return (
-      <div>
+      <div id="stripe">
         <div className="steps_wrapper">
           <div className="line"></div>
           <div className={"step_wrapper" + this.isSelected(0)}>
@@ -48,13 +53,21 @@ class Stripe extends React.Component{
             <span>Thank You</span>
           </div>
         </div>
-        <h1>The Terraform Spore Lamp</h1>
+        <h1>The Terraform {this.props.title}</h1>
         <div className="form_description_wrapper">
           {this.orderSection()}
         </div>
       </div>
     )
   }
+}
+
+Stripe.propTypes = {
+  title: React.PropTypes.string.isRequired,
+  description: React.PropTypes.array.isRequired,
+  price: React.PropTypes.number.isRequired,
+  options: React.PropTypes.array,
+  sale: React.PropTypes.bool
 }
 
 export default Stripe;
